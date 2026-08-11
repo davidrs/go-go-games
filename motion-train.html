@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#75c9f1" />
+  <title>Go, Go Train!</title>
+  <style>
+    :root { --ink:#153350; --yellow:#ffd84c; --blue:#3089dc; --red:#ef5a4f; }
+    * { box-sizing:border-box } body { margin:0; overflow:hidden; min-height:100svh; font-family:ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif; color:var(--ink); background:#75c9f1; user-select:none; }
+    .sky { position:relative; height:100svh; overflow:hidden; background:linear-gradient(#75c9f1 0 58%, #b5e660 58%); }
+    .cloud { position:absolute; color:#fff; font-size:clamp(3rem,9vw,7rem); line-height:.3; filter:drop-shadow(0 5px 0 #b0def0); opacity:.93; }
+    .c1{top:16%;left:8%}.c2{top:26%;right:12%;font-size:clamp(2rem,6vw,5rem)}
+    .hill { position:absolute; background:#83c847; border-radius:100% 100% 0 0; width:58vw; height:25vh; bottom:38%; }.h1{left:-15%;}.h2{right:-13%;height:20vh;background:#6ab93f}
+    header { position:absolute; z-index:5; width:100%; top:clamp(14px,3vh,30px); text-align:center; pointer-events:none; }
+    h1 { margin:0; font-size:clamp(2.1rem,6vw,4.5rem); letter-spacing:.04em; color:#fff; text-shadow:0 5px 0 #2a7ab2, 0 8px 0 rgba(0,0,0,.08); }
+    .sub { margin:8px 0 0; font-size:clamp(1rem,2.5vw,1.45rem); font-weight:800; color:#153350; }
+    .camera { position:absolute; z-index:4; top:clamp(100px,17vh,160px); right:clamp(13px,4vw,48px); width:clamp(112px,18vw,190px); aspect-ratio:4/3; border:7px solid #fff; border-radius:22px; background:#143b5c; overflow:hidden; box-shadow:0 7px 0 rgba(21,51,80,.25); transform:scaleX(-1); }
+    video { width:100%; height:100%; object-fit:cover; opacity:.92; } .camera::after { content:""; position:absolute; inset:0; border:3px solid #153350; border-radius:15px; pointer-events:none; }
+    .camera-label { position:absolute; z-index:5; top:calc(clamp(100px,17vh,160px) - 20px); right:clamp(17px,4.5vw,53px); margin:0; font-size:.8rem; font-weight:900; color:#153350; background:#fff; padding:4px 10px; border-radius:99px; }
+    .track { position:absolute; bottom:0; width:100%; height:37vh; background:repeating-linear-gradient(90deg, transparent 0 12%, #754b32 12% 14%, transparent 14% 25%), linear-gradient(#43505c 0 20%, #273747 20% 100%); border-top:10px solid #6d7d87; }
+    .track::before,.track::after { content:""; position:absolute; width:100%; height:11px; background:#d6e3e7; left:0; box-shadow:0 36px 0 #d6e3e7; }.track::before{top:24%}.track::after{top:73%}
+    #train { --x:-42vw; position:absolute; z-index:3; bottom:clamp(95px,19vh,160px); left:var(--x); display:flex; align-items:flex-end; transition:filter .15s; filter:drop-shadow(0 9px 0 rgba(21,51,80,.23)); }
+    .engine { position:relative; width:clamp(190px,29vw,345px); height:clamp(115px,17vw,185px); background:var(--blue); border:7px solid var(--ink); border-radius:48px 26px 18px 18px; }.engine::before { content:""; position:absolute; width:25%; height:35%; right:10%; top:20%; border:7px solid var(--ink); border-radius:50%; background:#ffed78; }.engine::after { content:""; position:absolute; width:21%; height:37%; left:15%; top:-30%; background:var(--red); border:7px solid var(--ink); border-bottom:0; border-radius:15px 15px 0 0; }
+    .cab { position:absolute; width:33%; height:63%; left:8%; top:7%; border:7px solid var(--ink); border-radius:17px 17px 0 0; background:#ef5a4f; }.cab::after{content:"";position:absolute; width:52%; height:38%; right:9%; top:17%; background:#aee4fa; border:5px solid var(--ink); border-radius:7px;}
+    .wagon { width:clamp(130px,20vw,240px); height:clamp(93px,13vw,140px); margin-left:10px; background:var(--yellow); border:7px solid var(--ink); border-radius:17px; position:relative; }.wagon::before { content:"★"; font-size:clamp(2.4rem,5vw,4rem); position:absolute; top:7%; left:32%; color:#ef5a4f; text-shadow:2px 2px 0 #153350; }
+    .wheel { position:absolute; bottom:clamp(-25px,-3vw,-19px); height:clamp(45px,6vw,65px); width:clamp(45px,6vw,65px); background:#f5f1d8; border:7px solid var(--ink); border-radius:50%; }.wheel::after{content:""; position:absolute; inset:28%; background:#ef5a4f; border:4px solid var(--ink); border-radius:50%;}.w1{left:14%}.w2{right:12%}.wagon .w1{left:16%}.wagon .w2{right:16%}
+    .puff { position:absolute; z-index:2; bottom:clamp(245px,35vh,320px); left:0; font-size:clamp(2.4rem,5vw,5rem); opacity:0; transition:opacity .2s; }.puff.go{opacity:1; animation:puff 1.2s ease-out infinite}@keyframes puff{to{transform:translate(75px,-70px) scale(1.5);opacity:0}}
+    .meter { position:absolute; z-index:5; left:clamp(14px,4vw,48px); bottom:clamp(15px,4vh,34px); background:#fff; padding:10px 14px; border-radius:18px; box-shadow:0 4px 0 rgba(21,51,80,.25); font-weight:900; }.dots { display:flex; gap:5px; margin-top:6px; }.dot{height:13px;width:13px;border-radius:50%;background:#d5e5e9}.dot.on{background:#ef5a4f;transform:scale(1.15)}
+    #start { position:absolute; inset:0; z-index:10; display:grid; place-items:center; background:rgba(117,201,241,.65); backdrop-filter:blur(3px); }.card{width:min(88vw,460px); text-align:center; background:#fff9dc; border:7px solid var(--ink); border-radius:34px; padding:clamp(24px,5vw,42px); box-shadow:0 12px 0 rgba(21,51,80,.23); }.card h2{font-size:clamp(2rem,5vw,3.2rem);margin:0 0 9px}.card p{font-size:1.15rem;font-weight:700;line-height:1.35;margin:0 0 23px}.go-button{border:0;border-radius:99px;background:#ef5a4f;color:#fff;font:900 clamp(1.3rem,3vw,1.7rem) inherit;padding:16px 29px;box-shadow:0 7px 0 #a33837;cursor:pointer}.go-button:active{transform:translateY(5px);box-shadow:0 2px 0 #a33837}.note{font-size:.78rem!important;margin:20px 0 0!important;color:#416076}
+    @media (max-width:550px){.wagon{display:none}.camera{top:105px}.camera-label{top:85px}.track{height:32vh}#train{bottom:clamp(74px,15vh,110px)}}
+  </style>
+</head>
+<body>
+  <main class="sky">
+    <div class="cloud c1">☁</div><div class="cloud c2">☁</div><div class="hill h1"></div><div class="hill h2"></div>
+    <header><h1>GO, GO TRAIN!</h1><p class="sub">Move your body to make the train go!</p></header>
+    <p class="camera-label">YOU!</p><div class="camera"><video id="video" autoplay muted playsinline></video></div>
+    <div id="puff" class="puff">☁</div>
+    <div id="train"><div class="engine"><div class="cab"></div><i class="wheel w1"></i><i class="wheel w2"></i></div><div class="wagon"><i class="wheel w1"></i><i class="wheel w2"></i></div></div>
+    <div class="track"></div>
+    <div class="meter">YOUR POWER!<div class="dots" id="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div></div>
+    <section id="start"><div class="card"><h2>🚂 Ready?</h2><p>Tap the button, then dance, wave, or wiggle!</p><button class="go-button" id="goButton">START THE TRAIN!</button><p class="note">A grown-up may need to say yes to the camera.</p></div></section>
+  </main>
+  <canvas id="motionCanvas" width="64" height="48" hidden></canvas>
+  <script>
+    const video = document.querySelector('#video'), canvas = document.querySelector('#motionCanvas'), ctx = canvas.getContext('2d', {willReadFrequently:true});
+    const train = document.querySelector('#train'), dots = [...document.querySelectorAll('.dot')], puff = document.querySelector('#puff'), start = document.querySelector('#start');
+    let previous, power = 0, distance = -0.4, last = 0, audio, running = false;
+    function beep(){ try { audio ??= new AudioContext(); const o=audio.createOscillator(), g=audio.createGain(); o.frequency.value=520;g.gain.setValueAtTime(.05,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.18);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+.18); } catch(_){} }
+    async function begin(){
+      try { const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:320},height:{ideal:240}},audio:false}); video.srcObject=stream; await video.play(); start.style.display='none'; running=true; beep(); requestAnimationFrame(tick); }
+      catch(e) { document.querySelector('.card p').textContent='We need the camera to play. Ask a grown-up to tap the button and allow it!'; }
+    }
+    function motion(){
+      ctx.drawImage(video,0,0,64,48); const now=ctx.getImageData(0,0,64,48).data; let sum=0, count=0;
+      if(previous) for(let i=0;i<now.length;i+=16){ const d=Math.abs(now[i]-previous[i])+Math.abs(now[i+1]-previous[i+1])+Math.abs(now[i+2]-previous[i+2]); sum+=d;count++; }
+      previous=now; return count ? Math.min(1,sum/count/95) : 0;
+    }
+    function tick(time){ if(!running)return; const dt=Math.min(50,time-last||16);last=time; power=power*.78+motion()*.22; const level=Math.min(5,Math.floor(power*8)); dots.forEach((d,i)=>d.classList.toggle('on',i<level));
+      // Keep the train still when the player is still.  These are viewport fractions per frame:
+      // gentle wiggling gives it a slow roll; big dancing makes it zip along.
+      distance += (power * .028) * dt / 16; if(distance>1.03)distance=-.42; train.style.setProperty('--x',(distance*100)+'vw'); puff.classList.toggle('go',power>.12); requestAnimationFrame(tick); }
+    document.querySelector('#goButton').addEventListener('click',begin);
+  </script>
+</body>
+</html>
