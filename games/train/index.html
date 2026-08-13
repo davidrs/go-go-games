@@ -25,7 +25,7 @@
     .cab { position:absolute; width:33%; height:63%; left:8%; top:7%; border:7px solid var(--ink); border-radius:17px 17px 0 0; background:#ef5a4f; }.cab::after{content:"";position:absolute; width:52%; height:38%; right:9%; top:17%; background:#aee4fa; border:5px solid var(--ink); border-radius:7px;}
     .wagon { width:clamp(130px,20vw,240px); height:clamp(93px,13vw,140px); margin-left:10px; background:var(--yellow); border:7px solid var(--ink); border-radius:17px; position:relative; }.wagon::before { content:"★"; font-size:clamp(2.4rem,5vw,4rem); position:absolute; top:7%; left:32%; color:#ef5a4f; text-shadow:2px 2px 0 #153350; }
     .wheel { position:absolute; bottom:clamp(-25px,-3vw,-19px); height:clamp(45px,6vw,65px); width:clamp(45px,6vw,65px); background:#f5f1d8; border:7px solid var(--ink); border-radius:50%; }.wheel::after{content:""; position:absolute; inset:28%; background:#ef5a4f; border:4px solid var(--ink); border-radius:50%;}.w1{left:14%}.w2{right:12%}.wagon .w1{left:16%}.wagon .w2{right:16%}
-    .puff { position:absolute; z-index:2; bottom:clamp(245px,35vh,320px); left:0; font-size:clamp(2.4rem,5vw,5rem); opacity:0; transition:opacity .2s; }.puff.go{opacity:1; animation:puff 1.2s ease-out infinite}@keyframes puff{to{transform:translate(75px,-70px) scale(1.5);opacity:0}}
+    .puff { position:absolute; z-index:-1; bottom:82%; left:12%; font-size:clamp(2.4rem,5vw,5rem); line-height:1; opacity:0; pointer-events:none; }.puff.go{opacity:1; animation:puff 1.2s ease-out infinite}@keyframes puff{from{transform:translate(0,0) scale(.65);opacity:.9}to{transform:translate(75px,-70px) scale(1.45);opacity:0}}
     .meter { position:absolute; z-index:5; left:clamp(14px,4vw,48px); bottom:clamp(15px,4vh,34px); background:#fff; padding:10px 14px; border-radius:18px; box-shadow:0 4px 0 rgba(21,51,80,.25); font-weight:900; }.dots { display:flex; gap:5px; margin-top:6px; }.dot{height:13px;width:13px;border-radius:50%;background:#d5e5e9}.dot.on{background:#ef5a4f;transform:scale(1.15)}
     .menu-link { position:absolute; z-index:6; top:14px; left:14px; padding:10px 15px; color:var(--ink); background:#fff; border:4px solid var(--ink); border-radius:99px; font-weight:900; text-decoration:none; box-shadow:0 4px 0 rgba(21,51,80,.2); }
     .menu-link:focus-visible { outline:4px solid var(--yellow); outline-offset:3px; }
@@ -39,8 +39,7 @@
     <div class="cloud c1">☁</div><div class="cloud c2">☁</div><div class="hill h1"></div><div class="hill h2"></div>
     <header><h1>GO, GO TRAIN!</h1><p class="sub">Move your body to make the train go!</p></header>
     <p class="camera-label">YOU!</p><div class="camera"><video id="video" autoplay muted playsinline></video></div>
-    <div id="puff" class="puff">☁</div>
-    <div id="train"><div class="engine"><div class="cab"></div><i class="wheel w1"></i><i class="wheel w2"></i></div><div class="wagon"><i class="wheel w1"></i><i class="wheel w2"></i></div></div>
+    <div id="train"><div id="puff" class="puff">☁</div><div class="engine"><div class="cab"></div><i class="wheel w1"></i><i class="wheel w2"></i></div><div class="wagon"><i class="wheel w1"></i><i class="wheel w2"></i></div></div>
     <div class="track"></div>
     <div class="meter">YOUR POWER!<div class="dots" id="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div></div>
     <section id="start"><div class="card"><h2>🚂 Ready?</h2><p>Tap the button, then dance, wave, or wiggle!</p><button class="go-button" id="goButton">START THE TRAIN!</button><p class="note">A grown-up may need to say yes to the camera.</p></div></section>
@@ -49,14 +48,18 @@
   <script>
     const video = document.querySelector('#video');
     const train = document.querySelector('#train'), dots = [...document.querySelectorAll('.dot')], puff = document.querySelector('#puff'), start = document.querySelector('#start');
-    const motion = new WebcamEnergy(video);
+    const motion = new WebcamEnergy(video, {
+      sensitivity: 115,
+      noiseFloor: 0.08,
+      idleCutoff: 0.02,
+    });
     let distance = -0.4, last = 0, audio, running = false;
     function beep(){ try { audio ??= new AudioContext(); const o=audio.createOscillator(), g=audio.createGain(); o.frequency.value=520;g.gain.setValueAtTime(.05,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.18);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+.18); } catch(_){} }
     async function begin(){
       try { await motion.start(); start.style.display='none'; running=true; beep(); requestAnimationFrame(tick); }
       catch(e) { document.querySelector('.card p').textContent='We need the camera to play. Ask a grown-up to tap the button and allow it!'; }
     }
-    function tick(time){ if(!running)return; const dt=Math.min(50,time-last||16);last=time; const power=motion.update(); const level=Math.min(5,Math.floor(power*8)); dots.forEach((d,i)=>d.classList.toggle('on',i<level));
+    function tick(time){ if(!running)return; const dt=Math.min(50,time-last||16);last=time; const sensedEnergy=motion.update(); const power=sensedEnergy<.04?0:(sensedEnergy-.04)/.96; const level=Math.min(5,Math.floor(power*8)); dots.forEach((d,i)=>d.classList.toggle('on',i<level));
       // Keep the train still when the player is still.  These are viewport fractions per frame:
       // gentle wiggling gives it a slow roll; big dancing makes it zip along.
       distance += (power * .028) * dt / 16; if(distance>1.03)distance=-.42; train.style.setProperty('--x',(distance*100)+'vw'); puff.classList.toggle('go',power>.12); requestAnimationFrame(tick); }

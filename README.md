@@ -43,6 +43,8 @@ Optional constructor settings:
 const motion = new WebcamEnergy(video, {
   sensitivity: 95, // Lower values react more strongly.
   smoothing: 0.22, // Higher values respond faster; lower values feel steadier.
+  noiseFloor: 0.06, // Ignore small camera-sensor and lighting fluctuations.
+  idleCutoff: 0.015, // Snap fading energy to zero so games fully stop.
   width: 64,
   height: 48,
   sampleStride: 16,
