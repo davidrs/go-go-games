@@ -42,7 +42,7 @@ Optional constructor settings:
 ```js
 const motion = new WebcamEnergy(video, {
   sensitivity: 95, // Lower values react more strongly.
-  smoothing: 0.22, // Higher values respond faster; lower values feel steadier.
+  smoothing: 0.22, // Higher values respond faster; lower values feel smoother.
   noiseFloor: 0.06, // Ignore small camera-sensor and lighting fluctuations.
   idleCutoff: 0.015, // Snap fading energy to zero so games fully stop.
   width: 64,
@@ -52,6 +52,8 @@ const motion = new WebcamEnergy(video, {
 ```
 
 Call `motion.stop()` when leaving a game or when the camera is no longer needed.
+
+`motion.rawEnergy` exposes the latest unsmoothed, pre-threshold reading. It is useful for building an optional calibration flow: sample it while the room is still to choose a `noiseFloor`, then sample normal play movement to choose the game’s speed or gain. The train game includes a complete example with a simple sensitivity slider and two-step calibration.
 
 ## Adding a new game
 

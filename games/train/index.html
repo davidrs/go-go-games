@@ -29,6 +29,22 @@
     .meter { position:absolute; z-index:5; left:clamp(14px,4vw,48px); bottom:clamp(15px,4vh,34px); background:#fff; padding:10px 14px; border-radius:18px; box-shadow:0 4px 0 rgba(21,51,80,.25); font-weight:900; }.dots { display:flex; gap:5px; margin-top:6px; }.dot{height:13px;width:13px;border-radius:50%;background:#d5e5e9}.dot.on{background:#ef5a4f;transform:scale(1.15)}
     .menu-link { position:absolute; z-index:6; top:14px; left:14px; padding:10px 15px; color:var(--ink); background:#fff; border:4px solid var(--ink); border-radius:99px; font-weight:900; text-decoration:none; box-shadow:0 4px 0 rgba(21,51,80,.2); }
     .menu-link:focus-visible { outline:4px solid var(--yellow); outline-offset:3px; }
+    .settings-button { position:absolute; z-index:6; right:14px; bottom:14px; width:52px; height:52px; padding:0; color:var(--ink); background:#fff; border:4px solid var(--ink); border-radius:50%; font-size:1.55rem; line-height:1; box-shadow:0 4px 0 rgba(21,51,80,.2); cursor:pointer; }
+    .settings-button:focus-visible,.settings-card button:focus-visible,.settings-card input:focus-visible { outline:4px solid var(--yellow); outline-offset:3px; }
+    [hidden] { display:none!important; }
+    .settings { position:fixed; z-index:20; inset:0; display:grid; place-items:center; padding:18px; background:rgba(21,51,80,.5); backdrop-filter:blur(4px); }
+    .settings-card { position:relative; width:min(92vw,480px); padding:30px; background:#fff9dc; border:7px solid var(--ink); border-radius:30px; box-shadow:0 12px 0 rgba(21,51,80,.25); text-align:center; }
+    .settings-card h2 { margin:0 38px 8px; font-size:clamp(1.7rem,5vw,2.35rem); }
+    .settings-card p { margin:0 0 20px; font-weight:700; line-height:1.35; }
+    .close-settings { position:absolute; top:12px; right:12px; width:42px; height:42px; padding:0; color:var(--ink); background:#fff; border:3px solid var(--ink); border-radius:50%; font-size:1.45rem; font-weight:900; cursor:pointer; }
+    .slider-label { display:block; margin:22px 0 8px; font-size:1.1rem; font-weight:900; }
+    #sensitivity { width:100%; accent-color:var(--red); cursor:pointer; }
+    .range-words { display:flex; justify-content:space-between; margin-top:5px; font-size:.78rem; font-weight:900; color:#416076; }
+    .calibrate-button,.reset-button { width:100%; border:0; border-radius:99px; font:900 1rem inherit; cursor:pointer; }
+    .calibrate-button { margin-top:24px; padding:14px 18px; color:#fff; background:var(--blue); box-shadow:0 5px 0 #1f5f9b; }
+    .reset-button { margin-top:15px; padding:8px; color:#416076; background:transparent; text-decoration:underline; }
+    .calibrate-button:disabled { opacity:.6; cursor:wait; }
+    .calibration-status { min-height:2.7em; margin:16px 0 0!important; padding:10px; color:var(--ink); background:#fff; border-radius:14px; }
     #start { position:absolute; inset:0; z-index:10; display:grid; place-items:center; background:rgba(117,201,241,.65); backdrop-filter:blur(3px); }.card{width:min(88vw,460px); text-align:center; background:#fff9dc; border:7px solid var(--ink); border-radius:34px; padding:clamp(24px,5vw,42px); box-shadow:0 12px 0 rgba(21,51,80,.23); }.card h2{font-size:clamp(2rem,5vw,3.2rem);margin:0 0 9px}.card p{font-size:1.15rem;font-weight:700;line-height:1.35;margin:0 0 23px}.go-button{border:0;border-radius:99px;background:#ef5a4f;color:#fff;font:900 clamp(1.3rem,3vw,1.7rem) inherit;padding:16px 29px;box-shadow:0 7px 0 #a33837;cursor:pointer}.go-button:active{transform:translateY(5px);box-shadow:0 2px 0 #a33837}.note{font-size:.78rem!important;margin:20px 0 0!important;color:#416076}
     @media (max-width:550px){.wagon{display:none}.camera{top:105px}.camera-label{top:85px}.track{height:32vh}#train{bottom:clamp(74px,15vh,110px)}}
   </style>
@@ -36,6 +52,7 @@
 <body>
   <main class="sky">
     <a class="menu-link" href="../../" aria-label="Back to game menu">← GAMES</a>
+    <button class="settings-button" id="settingsButton" aria-label="Grown-up settings" title="Grown-up settings">⚙</button>
     <div class="cloud c1">☁</div><div class="cloud c2">☁</div><div class="hill h1"></div><div class="hill h2"></div>
     <header><h1>GO, GO TRAIN!</h1><p class="sub">Move your body to make the train go!</p></header>
     <p class="camera-label">YOU!</p><div class="camera"><video id="video" autoplay muted playsinline></video></div>
@@ -44,26 +61,64 @@
     <div class="meter">YOUR POWER!<div class="dots" id="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div></div>
     <section id="start"><div class="card"><h2>🚂 Ready?</h2><p>Tap the button, then dance, wave, or wiggle!</p><button class="go-button" id="goButton">START THE TRAIN!</button><p class="note">A grown-up may need to say yes to the camera.</p></div></section>
   </main>
+  <section class="settings" id="settings" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" hidden>
+    <div class="settings-card">
+      <button class="close-settings" id="closeSettings" aria-label="Close settings">×</button>
+      <h2 id="settingsTitle">Grown-up settings</h2>
+      <p>Adjust how much movement starts the train.</p>
+      <label class="slider-label" for="sensitivity">Movement sensitivity</label>
+      <input id="sensitivity" type="range" min="0" max="100" value="78" />
+      <div class="range-words" aria-hidden="true"><span>Big moves</span><span>Tiny wiggles</span></div>
+      <button class="calibrate-button" id="calibrateButton">CALIBRATE FOR THIS ROOM</button>
+      <p class="calibration-status" id="calibrationStatus" aria-live="polite">We’ll ask you to freeze, then wiggle.</p>
+      <button class="reset-button" id="resetSettings">Reset to defaults</button>
+    </div>
+  </section>
   <script src="../../js/webcam-energy.js"></script>
   <script>
     const video = document.querySelector('#video');
     const train = document.querySelector('#train'), dots = [...document.querySelectorAll('.dot')], puff = document.querySelector('#puff'), start = document.querySelector('#start');
+    const settings = document.querySelector('#settings'), settingsButton = document.querySelector('#settingsButton'), closeSettings = document.querySelector('#closeSettings');
+    const sensitivitySlider = document.querySelector('#sensitivity'), calibrateButton = document.querySelector('#calibrateButton'), calibrationStatus = document.querySelector('#calibrationStatus');
+    const DEFAULTS = { noiseFloor: .035, powerGain: 1.15, slider: 78 };
+    let savedSettings = null;
+    try { savedSettings = JSON.parse(localStorage.getItem('goGoTrainMotion') || 'null'); } catch (_) {}
     const motion = new WebcamEnergy(video, {
-      sensitivity: 115,
-      noiseFloor: 0.08,
-      idleCutoff: 0.02,
+      sensitivity: 100,
+      smoothing: 0.16,
+      noiseFloor: savedSettings?.noiseFloor ?? DEFAULTS.noiseFloor,
+      idleCutoff: 0.01,
     });
-    let distance = -0.4, last = 0, audio, running = false;
+    let powerGain = savedSettings?.powerGain ?? DEFAULTS.powerGain;
+    let distance = -0.4, last = 0, audio, running = false, calibrationPhase = '', calibrationSamples = [];
+    sensitivitySlider.value = savedSettings?.slider ?? DEFAULTS.slider;
     function beep(){ try { audio ??= new AudioContext(); const o=audio.createOscillator(), g=audio.createGain(); o.frequency.value=520;g.gain.setValueAtTime(.05,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.18);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+.18); } catch(_){} }
     async function begin(){
       try { await motion.start(); start.style.display='none'; running=true; beep(); requestAnimationFrame(tick); }
       catch(e) { document.querySelector('.card p').textContent='We need the camera to play. Ask a grown-up to tap the button and allow it!'; }
     }
-    function tick(time){ if(!running)return; const dt=Math.min(50,time-last||16);last=time; const sensedEnergy=motion.update(); const power=sensedEnergy<.04?0:(sensedEnergy-.04)/.96; const level=Math.min(5,Math.floor(power*8)); dots.forEach((d,i)=>d.classList.toggle('on',i<level));
+    function tick(time){ if(!running)return; const dt=Math.min(50,time-last||16);last=time; const sensedEnergy=motion.update(); if(calibrationPhase)calibrationSamples.push(motion.rawEnergy); const drive=sensedEnergy<.015?0:(sensedEnergy-.015)/.985; const power=calibrationPhase?0:Math.min(1,drive*powerGain); const level=Math.min(5,Math.floor(power*8)); dots.forEach((d,i)=>d.classList.toggle('on',i<level));
       // Keep the train still when the player is still.  These are viewport fractions per frame:
       // gentle wiggling gives it a slow roll; big dancing makes it zip along.
       distance += (power * .028) * dt / 16; if(distance>1.03)distance=-.42; train.style.setProperty('--x',(distance*100)+'vw'); puff.classList.toggle('go',power>.12); requestAnimationFrame(tick); }
     document.querySelector('#goButton').addEventListener('click',begin);
+    function saveSettings(){ localStorage.setItem('goGoTrainMotion',JSON.stringify({noiseFloor:motion.noiseFloor,powerGain,slider:Number(sensitivitySlider.value)})); }
+    function setSensitivity(value){ motion.noiseFloor=.105-Number(value)*.0009; motion.energy=0; powerGain=1.15; saveSettings(); }
+    function percentile(values,amount){ if(!values.length)return 0; const sorted=[...values].sort((a,b)=>a-b); return sorted[Math.min(sorted.length-1,Math.floor(sorted.length*amount))]; }
+    function openSettings(){ settings.hidden=false; calibrationStatus.textContent='We’ll ask you to freeze, then wiggle.'; closeSettings.focus(); }
+    function hideSettings(){ if(calibrationPhase)return; settings.hidden=true; settingsButton.focus(); }
+    settingsButton.addEventListener('click',openSettings);
+    closeSettings.addEventListener('click',hideSettings);
+    settings.addEventListener('click',(event)=>{if(event.target===settings)hideSettings();});
+    document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&!settings.hidden)hideSettings();});
+    sensitivitySlider.addEventListener('input',()=>setSensitivity(sensitivitySlider.value));
+    document.querySelector('#resetSettings').addEventListener('click',()=>{sensitivitySlider.value=DEFAULTS.slider;motion.noiseFloor=DEFAULTS.noiseFloor;motion.energy=0;powerGain=DEFAULTS.powerGain;saveSettings();calibrationStatus.textContent='Back to the gentle default setting.';});
+    calibrateButton.addEventListener('click',()=>{
+      calibrateButton.disabled=true;sensitivitySlider.disabled=true;calibrationPhase='still';calibrationSamples=[];motion.noiseFloor=0;motion.energy=0;calibrationStatus.textContent='1 of 2: Everyone FREEZE…';
+      setTimeout(()=>{const still=calibrationSamples;calibrationPhase='move';calibrationSamples=[];calibrationStatus.textContent='2 of 2: Now WIGGLE and WAVE!';
+        setTimeout(()=>{const moving=calibrationSamples;const floor=Math.min(.09,Math.max(.012,percentile(still,.92)*1.35+.004));const moveLevel=percentile(moving,.7);motion.noiseFloor=floor;motion.energy=0;const usable=Math.max(.06,(moveLevel-floor)/(1-floor));powerGain=Math.min(2.5,Math.max(.8,.6/usable));sensitivitySlider.value=Math.round(Math.max(0,Math.min(100,(.105-floor)/.0009)));calibrationPhase='';calibrationSamples=[];calibrateButton.disabled=false;sensitivitySlider.disabled=false;saveSettings();calibrationStatus.textContent='All set! Try a wiggle.';beep();},2600);
+      },2200);
+    });
   </script>
 </body>
 </html>

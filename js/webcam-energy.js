@@ -17,6 +17,7 @@ class WebcamEnergy {
     this.noiseFloor = options.noiseFloor ?? 0.06;
     this.idleCutoff = options.idleCutoff ?? 0.015;
     this.energy = 0;
+    this.rawEnergy = 0;
     this.previousFrame = null;
     this.stream = null;
 
@@ -60,10 +61,10 @@ class WebcamEnergy {
     }
 
     this.previousFrame = frame;
-    const rawEnergy = samples ? Math.min(1, difference / samples / this.sensitivity) : 0;
-    const usableEnergy = rawEnergy <= this.noiseFloor
+    this.rawEnergy = samples ? Math.min(1, difference / samples / this.sensitivity) : 0;
+    const usableEnergy = this.rawEnergy <= this.noiseFloor
       ? 0
-      : (rawEnergy - this.noiseFloor) / (1 - this.noiseFloor);
+      : (this.rawEnergy - this.noiseFloor) / (1 - this.noiseFloor);
 
     this.energy = this.energy * (1 - this.smoothing) + usableEnergy * this.smoothing;
     if (usableEnergy === 0 && this.energy < this.idleCutoff) this.energy = 0;
@@ -76,6 +77,7 @@ class WebcamEnergy {
     this.stream = null;
     this.previousFrame = null;
     this.energy = 0;
+    this.rawEnergy = 0;
   }
 }
 
