@@ -20,7 +20,7 @@
     .camera-label { position:absolute; z-index:5; top:calc(clamp(100px,17vh,160px) - 20px); right:clamp(17px,4.5vw,53px); margin:0; font-size:.8rem; font-weight:900; color:#153350; background:#fff; padding:4px 10px; border-radius:99px; }
     .track { position:absolute; bottom:0; width:100%; height:37vh; background:repeating-linear-gradient(90deg, transparent 0 12%, #754b32 12% 14%, transparent 14% 25%), linear-gradient(#43505c 0 20%, #273747 20% 100%); border-top:10px solid #6d7d87; }
     .track::before,.track::after { content:""; position:absolute; width:100%; height:11px; background:#d6e3e7; left:0; box-shadow:0 36px 0 #d6e3e7; }.track::before{top:24%}.track::after{top:73%}
-    #train { --x:-42vw; position:absolute; z-index:3; bottom:clamp(95px,19vh,160px); left:var(--x); display:flex; align-items:flex-end; transition:filter .15s; filter:drop-shadow(0 9px 0 rgba(21,51,80,.23)); }
+    #train { --x:6vw; position:absolute; z-index:3; bottom:clamp(95px,19vh,160px); left:var(--x); display:flex; align-items:flex-end; transition:filter .15s; filter:drop-shadow(0 9px 0 rgba(21,51,80,.23)); }
     .engine { position:relative; width:clamp(190px,29vw,345px); height:clamp(115px,17vw,185px); background:var(--blue); border:7px solid var(--ink); border-radius:48px 26px 18px 18px; }.engine::before { content:""; position:absolute; width:25%; height:35%; right:10%; top:20%; border:7px solid var(--ink); border-radius:50%; background:#ffed78; }.engine::after { content:""; position:absolute; width:21%; height:37%; left:15%; top:-30%; background:var(--red); border:7px solid var(--ink); border-bottom:0; border-radius:15px 15px 0 0; }
     .cab { position:absolute; width:33%; height:63%; left:8%; top:7%; border:7px solid var(--ink); border-radius:17px 17px 0 0; background:#ef5a4f; }.cab::after{content:"";position:absolute; width:52%; height:38%; right:9%; top:17%; background:#aee4fa; border:5px solid var(--ink); border-radius:7px;}
     .wagon { width:clamp(130px,20vw,240px); height:clamp(93px,13vw,140px); margin-left:10px; background:var(--yellow); border:7px solid var(--ink); border-radius:17px; position:relative; }.wagon::before { content:"★"; font-size:clamp(2.4rem,5vw,4rem); position:absolute; top:7%; left:32%; color:#ef5a4f; text-shadow:2px 2px 0 #153350; }
@@ -90,7 +90,7 @@
       idleCutoff: 0.01,
     });
     let powerGain = savedSettings?.powerGain ?? DEFAULTS.powerGain;
-    let distance = -0.4, last = 0, audio, running = false, calibrationPhase = '', calibrationSamples = [];
+    let distance = 0.06, last = 0, audio, running = false, calibrationPhase = '', calibrationSamples = [];
     sensitivitySlider.value = savedSettings?.slider ?? DEFAULTS.slider;
     function beep(){ try { audio ??= new AudioContext(); const o=audio.createOscillator(), g=audio.createGain(); o.frequency.value=520;g.gain.setValueAtTime(.05,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.18);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+.18); } catch(_){} }
     async function begin(){
